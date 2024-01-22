@@ -10,9 +10,12 @@
 
 import java.util.*;
 
+
+
 public class MBAssignment1 {
     public static final String ALL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static final int MAX_SEARCHES = 100;
+    public final String[] directions = {"VERTICAL", "HORIZONTAL", "POSITIVE_LINEAR", "NEGATIVE_LINEAR"};
     public static void main(String[] args) {
         char[][] grid = new char[100][100];
         boolean isDone = false;
@@ -60,14 +63,17 @@ public class MBAssignment1 {
     }
 
     public static char[][] generate(Scanner input) {
+        Random rand = new Random();
         int longestWord = 0;
+        boolean foundPlace;
+
         System.out.println("How many words would you like to enter?");
         int length = input.nextInt();
         String[] wordArray = new String[length]; // try multidimensional array
 
         for (int i = 0; i < wordArray.length; i++) {
             System.out.println("Enter a word: ");
-            wordArray[i] = input.next();
+            wordArray[i] = input.next().toUpperCase();
             
             if(wordArray[i].length() > longestWord) {
                 longestWord = wordArray[i].length();
@@ -76,32 +82,171 @@ public class MBAssignment1 {
         }
         System.out.println(Arrays.toString(wordArray));
 
-        char[][] grid = new char[longestWord + 5][longestWord + 5];
+        int gridSize = longestWord + 5;
+        char[][] grid = new char[gridSize][gridSize];
 
         for (String word : wordArray) {
-            placeWord(word, grid);
+            for (int failCount = 0; failCount < MAX_SEARCHES; failCount++) {
+                int row = rand.nextInt(gridSize);
+                int col = rand.nextInt(gridSize);
+                foundPlace = placeWord(word, grid, gridSize, row, col);
+
+                if (foundPlace) {
+                    break;
+                }
+            }
         }
         return grid;
     }
 
-    public static void placeWord(String word, char[][] grid) {
-        char[] wordToChar = word.toCharArray();
+    public static boolean placeWord(String word, char[][] grid, int gridSize, int row, int col) {
+        int direction = validDirection(word, grid, row, col);
 
+        switch (direction) {
+            case 1: // vertical
+                for (int i = 0; i < word.length(); i++) {
+                    if (grid[row + i][col] == 0) {
+                        grid[row + i][col] = word.charAt(i);
+                    }  else {
+                        return false;
+                    }
+                }
+                return true;
+            case 2: // backwards vertical
+                for (int i = 0; i < word.length(); i++) {
+                    if (grid[row - i][col] == 0) {
+                        grid[row - i][col] = word.charAt(i);
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            case 3: // horizontal
+                for (int i = 0; i < word.length(); i++) {
+                    if (grid[row][col + i] == 0) {
+                        grid[row][col + i] = word.charAt(i);
+                    } else {
+                        return false;
+                    }
+                return true;
+                }
+                return true;
+            case 4: // backwards horizontal
+                for (int i = 0; i < word.length(); i++) {
+                    if (grid[row][col - i] == 0) {
+                        grid[row][col - i] = word.charAt(i);
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            case 5: // diagonal /
+                for (int i = 0; i < word.length(); i++) {
+                    if (grid[row + i][col + i] == 0) {
+                        grid[row + i][col + i] = word.charAt(i);
+                    } else {
+                        return false;
+                    }
+                return true;
+                }
+                return true;
+            case 6: // backwards diagonal /
+                for (int i = 0; i < word.length(); i++) {
+                    if (grid[row - i][col + i] == 0) {
+                        grid[row - i][col + i] = word.charAt(i);
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            case 7: // diagonal \
+                for (int i = 0; i < word.length(); i++) {
+                    if (grid[row + i][col - 1] == 0) {
+                        grid[row + i][col - 1] = word.charAt(i);
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+            case 8: // backwards diagonal \
+                for ( int i = 0; i < word.length(); i++) {
+                    if (grid[row - 1][col - 1] == 0) {
+                        grid[row - 1][col - 1] = word.charAt(i);
+                    } else {
+                        return false;
+                    }
+                }
+                return true;
+        }
+        return false;
+    }
+        // while (failCount < MAX_SEARCHES) {
+
+        // }
+        // System.out.println("Maximum attempts reached. " + word.toLowerCase() + " could not be placed.");
+        // try catch array out of bounds and continue
+
+    public static int validDirection(String word, char[][] grid, int row, int col) {
+        Random rand = new Random();
+        int randDirection = rand.nextInt(8);
+        
+        switch (randDirection) {
+            case 1: // vertical
+                if (row + word.length() < grid.length) {
+                    return 1;
+                }
+            case 2: // backwards vertical
+                if (row - word.length() > 0) {
+                    return 2;
+                }
+            case 3: // horizontal
+                if (col + word.length() < grid.length) {
+                    return 3;
+                }
+            case 4: // backwards horizontal
+                if (col - word.length() > 0) {
+                    return 4;
+                }
+            case 5: // diagonal /
+                if ((row + word.length() < grid.length) && (col + word.length() < grid.length)) {
+                    return 5;
+                }
+            case 6: // backwards diagonal /
+                if ((row - word.length() > 0) && (col + word.length() < grid.length)) {
+                    return 6;
+                }
+            case 7: // diagonal \
+                if ((row + word.length() < grid.length) && (col - word.length() > 0)) {
+                    return 7;
+                }
+            case 8: // backwards diagonal \
+                if ((row - word.length() > 0) && (col - word.length() > 0)) {
+                    return 8;
+                }
+            default:
+                return 0;
+            }
+    }
+
+    public static void fill(char[][] grid) {
         for (int i = 0; i < grid.length; i++) {
             for (int j = 0; j < grid[1].length; j++) {
-                grid[i][j] = 'X';
+                if (grid[i][j] == 0) {
+                    grid[i][j] = 'X';
+                }
             }
         }
-
-        
     }
+
     public static void print(char[][] grid) {
-            for (int i = 0; i < grid.length; i++) {
-                for(int j = 0; j < grid[1].length; j++) {
-                    System.out.printf(" %c ", grid[i][j]);
-                }
-                System.out.println();
+        fill(grid);
+
+        for (int i = 0; i < grid.length; i++) {
+            for(int j = 0; j < grid[1].length; j++) {
+                System.out.print(grid[i][j] + "  ");
             }
+            System.out.println();
+        }
     }
     public static void showSolution(char[][] grid) {
         System.out.println("test");
