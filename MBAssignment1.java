@@ -2,21 +2,21 @@
 // CS 145
 // Assignment 1
 // Word Search Generator
-
-// try to place at a random coordinate 
-// first trying diagonal NE SW, diagonal NW SE, then vertical, then horizontal
-// if can't replace, return false, failed attempt counter++
-// if it reaches 100, inform user word cannot be placed
-
+// 8 directions and file I/O extra credit
 // asssumes input file format is one word per line
+// included one sample text file
 
 import java.io.*;
 import java.util.*;
 
 public class MBAssignment1 {
+    // initialize String with all letters in alphabet and max searches constant
     public static final String ALL_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     public static final int MAX_SEARCHES = 100;
+
+    // The menu! Restrict some menu options until program has run once
     public static void main(String[] args) throws FileNotFoundException, IOException {
+        // initialize two grid 2D arrays
         char[][] grid = new char[100][100];
         char[][] copyGrid = new char[100][100];
         boolean isDone = false;
@@ -32,7 +32,8 @@ public class MBAssignment1 {
                 case 'c':
                     String[] userWords = getUserWords(input);
                     grid = generate(userWords);
-                    copyGrid = saveGridCopy(grid);
+                    copyGrid = saveGridCopy(grid); 
+                    // creates a copy of the grid before fill to use with solution
                     fill(grid);
                     hasRun = true;
                     break;
@@ -63,20 +64,25 @@ public class MBAssignment1 {
                         System.out.println("Please generate a word search first");
                         break;
                     }
-                    showSolution(copyGrid);
+                    showSolution(copyGrid); // fills grid copy empty spaces with X and prints
                     break;
                 case 'q':
                     System.out.println("Thanks for playing!");
                     isDone = !isDone;
+                default: 
+                    System.out.println("Enter a valid command");
             }
         } while (!isDone);
     }
+
+    // prints intro to program
     public static void printIntro() {
         System.out.println("Welcome to my word search generator!");
         System.out.println("Generate your very own word search puzzle!");
         System.out.println();
     }
 
+    // displays menu options
     public static void menuOptions() {
         System.out.println("Please select an option:");
         System.out.println("C to Create a new word search");
@@ -87,6 +93,7 @@ public class MBAssignment1 {
         System.out.println("Q to Quit the program");
     }
 
+    // takes user input file, throws FileNotFoundException if not a valid file
     public static File takeInputFile(Scanner input) throws FileNotFoundException {
         System.out.println("Please enter a filename to read from: ");
         File inputFile = new File(input.next());
@@ -98,6 +105,7 @@ public class MBAssignment1 {
         return inputFile;
     }
 
+    // adds words from file with an ArrayList, then converts to and returns an array
     public static String[] getWordsFromFile(File inputFile) throws IOException {
         List<String> stringList = new ArrayList<String>();
         Scanner inputFileScan = new Scanner(inputFile);
@@ -115,6 +123,8 @@ public class MBAssignment1 {
         return fileWords;
     }
 
+    // prompts user for how many words they want to enter
+    // creates a word array of that length, stores words, returns
     public static String[] getUserWords(Scanner input) {
         System.out.println("How many words would you like to enter?");
         int length = input.nextInt();
@@ -127,6 +137,7 @@ public class MBAssignment1 {
         return wordArray;
     }
 
+    // takes an array of words, creates a grid, attempts to place words, returns a grid
     public static char[][] generate(String[] wordArray) {
         Random rand = new Random();
         int longestWord = 0;
@@ -137,29 +148,33 @@ public class MBAssignment1 {
                 longestWord = wordArray[i].length();
             }
         }
-
+        // determines length of the longest word and makes grid based on that + 5
         int gridSize = longestWord + 5;
         char[][] grid = new char[gridSize][gridSize];
-
+        // for each word, tries to place a word a maximum of 100 times
         for (String word : wordArray) {
             for (int failCount = 0; failCount < MAX_SEARCHES; failCount++) {
                 int row = rand.nextInt(gridSize);
                 int col = rand.nextInt(gridSize);
+                // generates a random coordinate to try to place the word
                 foundPlace = placeWord(word, grid, gridSize, row, col);
-
+                
                 if (foundPlace) {
                     break;
                 } else if (failCount + 1 == MAX_SEARCHES) {
-                    System.out.println("Maximum attempts reached. The word " + word.toLowerCase() + " could not be placed.");
+                    System.out.println("Maximum attempts reached. The word " + 
+                    word.toLowerCase() + " could not be placed.");
                 }
             }
         }
         return grid;
     }
 
+    // checks if all coordinates where word would be placed are empty, returns false if not
+    // otherwise adds word to grid and returns true
     public static boolean placeWord(String word, char[][] grid, int gridSize, int row, int col) {
         int direction = validDirection(word, grid, row, col);
-
+        
         switch (direction) {
             case 1: // vertical
                 for (int i = 0; i < word.length(); i++) {
@@ -246,6 +261,7 @@ public class MBAssignment1 {
         return false;
     }
 
+    // checks if placing the whole word at a random coordinate in a random direction will result in going out of bounds
     public static int validDirection(String word, char[][] grid, int row, int col) {
         Random rand = new Random();
         int randDirection = rand.nextInt(8);
@@ -287,7 +303,7 @@ public class MBAssignment1 {
                 return 0;
             }
     }
-
+    // saves a copy of the grid with placed words and no fill, returns copy
     public static char[][] saveGridCopy(char[][] grid) {
         char[][] copyGrid = new char[grid.length][grid.length];
         for (int i = 0; i < grid.length; i++) {
@@ -297,7 +313,7 @@ public class MBAssignment1 {
         }
         return copyGrid;
     }
-
+    // takes a random index of ALL_CHARS constant, adds letters to empty spaces in grid
     public static void fill(char[][] grid) {
         Random rand = new Random();
         for (int i = 0; i < grid.length; i++) {
@@ -309,6 +325,31 @@ public class MBAssignment1 {
         }
     }
 
+    // prints filled word search to console
+    public static void print(char[][] grid) {
+        System.out.println();
+        for (int i = 0; i < grid.length; i++) {
+            for(int j = 0; j < grid[1].length; j++) {
+                System.out.print(grid[i][j] + "  ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+    
+    // fills empty spaces with letter X
+    public static void showSolution(char[][] grid) {
+        for (int i = 0; i < grid.length; i++) {
+            for (int j = 0; j < grid.length; j++) {
+                if (grid[i][j] == 0) {
+                    grid[i][j] = 'X';
+                }
+            }
+        }
+        print(grid);
+    }
+
+    // adaptation of print and showSolution methods for file output, throws FileNotFoundException
     public static void printToFile(char[][] grid, char[][] copyGrid) throws FileNotFoundException {
         System.out.println("This word search will be printed to WordSearch.txt");
         File outputFile = new File("WordSearch.txt");
@@ -338,33 +379,5 @@ public class MBAssignment1 {
             }
             outputFileWrite.println();
         }
-    }
-
-    public static void print(char[][] grid) {
-        System.out.println();
-        for (int i = 0; i < grid.length; i++) {
-            for(int j = 0; j < grid[1].length; j++) {
-                System.out.print(grid[i][j] + "  ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-    public static void showSolution(char[][] grid) {
-        for (int i = 0; i < grid.length; i++) {
-            for (int j = 0; j < grid.length; j++) {
-                if (grid[i][j] == 0) {
-                    grid[i][j] = 'X';
-                }
-            }
-        }
-        System.out.println();
-        for (int i = 0; i < grid.length; i++) {
-            for(int j = 0; j < grid[1].length; j++) {
-                System.out.print(grid[i][j] + "  ");
-            }
-            System.out.println();
-        }
-        System.out.println();
     }
 }
